@@ -1,0 +1,10 @@
+[
+    {
+        "group_name": "Daily",
+        "group_file": "daily"
+    },
+    {
+        "group_name": "Python Road",
+        "group_file": "python_road"
+    }
+]
