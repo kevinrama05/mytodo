@@ -52,13 +52,13 @@ def show_tasks(dict_task, selected=False):
     if dict_task["completed"] == True:
         return completed if selected == False else completed_selected
     elif dict_task["priority"] == "Low":
-        return cyan if selected == False else completed_cyan
+        return cyan if selected == False else cyan_selected 
     elif dict_task["priority"] == "Medium":
-        return yellow if selected == False else completed_yellow
+        return yellow if selected == False else yellow_selected
     elif dict_task["priority"] == "High":
-        return orange if selected == False else completed_orange
+        return orange if selected == False else orange_selected
     elif dict_task["priority"] == "Urgent":
-        return red if selected == False else completed_red
+        return red if selected == False else red_selected
 
 
 def get_tasks(group="Daily"):
@@ -85,8 +85,53 @@ def get_tasks(group="Daily"):
     with open(f"tasks/{g}.json", "r") as file:
         tasks = json.load(file)
 
-    # Step 3: Return the tasks' variable
-    return tasks
+    # Step 3: Return the tasks' variable and the argument
+    return tasks, group
+
+def true_false(tasks):
+    """
+    Returns two lists of dictionaries, one with completed tasks, and one with uncompleted tasks
+
+    Args:
+        tasks (list of dicts): This is the list of the tasks in dictionary form
+
+    Returns
+        completed and uncompleted (list of dicts): Returns two lists of dictionaries, one with completed tasks and one with uncompleted tasks
+    """
+    # Step 1: Create two empty lists
+    completed = []
+    uncompleted = []
+
+    # Step 2: Add each task to the corresponding list
+    for i in tasks:
+        if i["completed"] == True:
+            completed.append(i)
+        else:
+            uncompleted.append(i)
+
+    # Step 3: Return the lists
+    return completed, uncompleted
+
+def add_task_tui(stdscr, group):
+    """
+    Makes a TUI for adding a task to a specific group
+    
+    Args:
+        group (str): This is the group name, which is used for identifying the group
+    """
+    # Step 1: Clear the screen
+    stdscr.clear()
+    stdscr.refresh()
+
+    # Step 2: Add an input field for the task and an input field for the priority
+    stdscr.addstr(0, 0, "Task: ")
+    stdscr.refresh()
+    stdscr.addstr(1, 0, "Priority")
+
+    # Step 3: Handle the input for the task
+    task = ""
+    while True:
+        ...
 
 def main(stdscr):
     """
@@ -95,15 +140,42 @@ def main(stdscr):
     stdscr.clear()
     curses.curs_set(0)
     
-    group = get_tasks()
+    # Get the "Daily" tasks, and split them into completed and uncompleted tasks
+    group, group_name = get_tasks()
+    completed, uncompleted = true_false(group)
 
+    location = 0
     while True:
+        # Print the tasks using a for loop
+        for n, i in enumerate(uncompleted):
+            if location == n:
+                stdscr.addstr(n, 0, f"> {i['task']}", show_tasks(i, True))
+                stdscr.refresh()
+            else:
+                stdscr.addstr(n, 0, f"  {i['task']}", show_tasks(i))
+                stdscr.refresh()
+        
+        stdscr.addstr(len(uncompleted) + 1, 0, "--------------------")
+        stdscr.refresh()
 
-        current_location = 0
+        for n, i in enumerate(completed):
+            if location == n + len(uncompleted):
+                stdscr.addstr(n+3+len(uncompleted), 0, f"> {i['task']}", show_tasks(i, True))
+                stdscr.refresh()
+            else:
+                stdscr.addstr(n+3+len(uncompleted), 0, f"  {i['task']}", show_tasks(i))
+                
+        key = stdscr.getch()        
+        if key == curses.KEY_UP and location > 0 :
+            location -= 1
+        elif key == curses.KEY_DOWN and location < len(group) - 1:
+            location += 1
+        
+        if key == (ord("a") & 0x1f):
+            add_task_tui()
 
-        for n, i in enumerate(group):
-            stdscr.addstr(n, 0, f"  {i['task']}", show_tasks(i))
-            stdscr.refresh()
+        if key == 27:
+            break
 
 
 curses.wrapper(main)
