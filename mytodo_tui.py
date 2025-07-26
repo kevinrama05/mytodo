@@ -126,12 +126,43 @@ def add_task_tui(stdscr, group):
     # Step 2: Add an input field for the task and an input field for the priority
     stdscr.addstr(0, 0, "Task: ")
     stdscr.refresh()
-    stdscr.addstr(1, 0, "Priority")
+    stdscr.addstr(1, 0, "Priority: ")
 
     # Step 3: Handle the input for the task
+    allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ") | set(r"""~`!@#$%^&*()-_=+[{]}\|;:'",<.>/?""")
     task = ""
     while True:
-        ...
+        stdscr.addstr(0, 6, task)
+        key = stdscr.get_wch()
+        if isinstance(key, str) and key in allowed_chars:
+            task += key
+        if key in ('\x7f', '\b', '\x08'):
+            task = task[:-1]
+            stdscr.addstr(0, 6+len(task), " ")
+        if key == "\n":
+            break
+    # Step 4: Handle the input for the priority
+    priority = ""
+    while True:
+        stdscr.addstr(1, 10, priority)
+        key = stdscr.get_wch()
+        if isinstance(key, str) and key in allowed_chars:
+            priority += key
+        if key in ('\x7f', '\b', '\x08'):
+            priority = priority[:-1]
+            stdscr.addstr(1, 10+len(priority), " ")
+        if key == "\n":
+            if priority.capitalize() not in ["Low", "Medium", "High", "Urgent"]:
+                stdscr.addstr(3, 0, "Please add a valid priority (Low, Medium, High or Urgent)")
+                stdscr.addstr(1, 10, " " * len(priority))
+                priority = ""
+            else:
+                break
+        if key == '\x1b':
+            return
+
+    stdscr.addstr(5, 0, task)
+    stdscr.addstr(6, 0, priority)
 
 def main(stdscr):
     """
@@ -178,4 +209,5 @@ def main(stdscr):
             break
 
 
-curses.wrapper(main)
+#curses.wrapper(main)
+curses.wrapper(add_task_tui, "Daily")
