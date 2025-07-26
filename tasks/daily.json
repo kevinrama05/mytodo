@@ -1,33 +1,22 @@
 [
     {
-        "task": "Wake up",
+        "task": "Read the Bible",
         "priority": "Urgent",
         "completed": false
     },
     {
-    	"task": "Go to school",
-	"priority": "High",
-	"completed": false
-    },
-    {
-    	"task": "Read a book",
-	"priority": "High",
-	"completed": false
-    },
-    {
-    	"task": "Make a website for a client",
-	"priority": "Urgent",
-	"completed": false
-    },
-    {
         "task": "Go to work",
-	"priority": "Urgent",
-	"completed": true
+        "priority": "High",
+        "completed": false
     },
     {
-        "task": "Make some pasta",
-	"priority": "Low",
-	"completed": true
+        "task": "Go to sleep",
+        "priority": "Low",
+        "completed": false
+    },
+    {
+        "task": "Do 10 push-ups",
+        "priority": "High",
+        "completed": false
     }
-
 ]

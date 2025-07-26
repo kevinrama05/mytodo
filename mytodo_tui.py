@@ -112,7 +112,7 @@ def true_false(tasks):
     # Step 3: Return the lists
     return completed, uncompleted
 
-def add_task_tui(stdscr, group):
+def add_task_tui(stdscr, group="Daily"):
     """
     Makes a TUI for adding a task to a specific group
     
@@ -122,11 +122,14 @@ def add_task_tui(stdscr, group):
     # Step 1: Clear the screen
     stdscr.clear()
     stdscr.refresh()
+    curses.curs_set(1)
 
     # Step 2: Add an input field for the task and an input field for the priority
     stdscr.addstr(0, 0, "Task: ")
     stdscr.refresh()
     stdscr.addstr(1, 0, "Priority: ")
+    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
 
     # Step 3: Handle the input for the task
     allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ") | set(r"""~`!@#$%^&*()-_=+[{]}\|;:'",<.>/?""")
@@ -141,6 +144,8 @@ def add_task_tui(stdscr, group):
             stdscr.addstr(0, 6+len(task), " ")
         if key == "\n":
             break
+        if key == '\x1b':
+            return
     # Step 4: Handle the input for the priority
     priority = ""
     while True:
@@ -153,16 +158,39 @@ def add_task_tui(stdscr, group):
             stdscr.addstr(1, 10+len(priority), " ")
         if key == "\n":
             if priority.capitalize() not in ["Low", "Medium", "High", "Urgent"]:
-                stdscr.addstr(3, 0, "Please add a valid priority (Low, Medium, High or Urgent)")
+                stdscr.addstr(3, 0, "Please add a valid priority (Low, Medium, High or Urgent)", curses.color_pair(1))
                 stdscr.addstr(1, 10, " " * len(priority))
                 priority = ""
             else:
                 break
         if key == '\x1b':
             return
+    
+    stdscr.addstr(3, 0, " " * 57)
+    stdscr.addstr(3, 0, f'Task "{task}" successfully added. Press any button to exit', curses.color_pair(2))
+    stdscr.refresh()
+    stdscr.getch()
 
-    stdscr.addstr(5, 0, task)
-    stdscr.addstr(6, 0, priority)
+    # Step 5: Find the .json file of the corresponding group
+    with open("groups.json", "r") as file:
+        groups = json.load(file)
+    f = ""
+    for i in groups:
+        if i["group_name"] == group:
+            f += i["group_file"]
+            break
+
+    # Step 6: Add the task on the corresponding group
+    with open(f"tasks/{f}.json", "r") as file:
+        try:
+            tasks = json.load(file)
+        except json.decoder.JSONDecodeError:
+            tasks = []
+
+    tasks.append({"task": task, "priority": priority.capitalize(), "completed": False})
+
+    with open(f"tasks/{f}.json", "w") as file:
+        json.dump(tasks, file, indent=4)
 
 def main(stdscr):
     """
@@ -185,16 +213,16 @@ def main(stdscr):
             else:
                 stdscr.addstr(n, 0, f"  {i['task']}", show_tasks(i))
                 stdscr.refresh()
-        
-        stdscr.addstr(len(uncompleted) + 1, 0, "--------------------")
-        stdscr.refresh()
+        if completed != []:    
+            stdscr.addstr(len(uncompleted) + 1, 0, "--------------------")
+            stdscr.refresh()
 
-        for n, i in enumerate(completed):
-            if location == n + len(uncompleted):
-                stdscr.addstr(n+3+len(uncompleted), 0, f"> {i['task']}", show_tasks(i, True))
-                stdscr.refresh()
-            else:
-                stdscr.addstr(n+3+len(uncompleted), 0, f"  {i['task']}", show_tasks(i))
+            for n, i in enumerate(completed):
+                if location == n + len(uncompleted):
+                    stdscr.addstr(n+3+len(uncompleted), 0, f"> {i['task']}", show_tasks(i, True))
+                    stdscr.refresh()
+                else:
+                    stdscr.addstr(n+3+len(uncompleted), 0, f"  {i['task']}", show_tasks(i))
                 
         key = stdscr.getch()        
         if key == curses.KEY_UP and location > 0 :
@@ -203,11 +231,14 @@ def main(stdscr):
             location += 1
         
         if key == (ord("a") & 0x1f):
-            add_task_tui()
+            add_task_tui(stdscr, group_name)
+            stdscr.clear()
+            group, group_name = get_tasks()
+            completed, uncompleted = true_false(group)
+            curses.curs_set(0)
 
         if key == 27:
-            break
+            return
 
 
-#curses.wrapper(main)
-curses.wrapper(add_task_tui, "Daily")
+curses.wrapper(main)
