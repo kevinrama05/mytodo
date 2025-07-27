@@ -1,5 +1,6 @@
 import curses
 import json
+import mytodo_funct
 
 def show_tasks(dict_task, selected=False):
     """
@@ -15,10 +16,10 @@ def show_tasks(dict_task, selected=False):
     Args:
         stdscr: This represents the window where the tasks will be printed
         dict_task (dict): This is the task after is extracted from the .json file
-        selected (bool): This shows if the task is selected. 
+        selected (bool): This shows if the task is selected.
     """
     # Step 1: Initialize the colors for each priority and for completed tasks
-    # This is the text color when the priority is low  
+    # This is the text color when the priority is low
     curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_WHITE)
     cyan = curses.color_pair(1)
@@ -52,7 +53,7 @@ def show_tasks(dict_task, selected=False):
     if dict_task["completed"] == True:
         return completed if selected == False else completed_selected
     elif dict_task["priority"] == "Low":
-        return cyan if selected == False else cyan_selected 
+        return cyan if selected == False else cyan_selected
     elif dict_task["priority"] == "Medium":
         return yellow if selected == False else yellow_selected
     elif dict_task["priority"] == "High":
@@ -115,7 +116,7 @@ def true_false(tasks):
 def add_task_tui(stdscr, group="Daily"):
     """
     Makes a TUI for adding a task to a specific group
-    
+
     Args:
         group (str): This is the group name, which is used for identifying the group
     """
@@ -165,32 +166,14 @@ def add_task_tui(stdscr, group="Daily"):
                 break
         if key == '\x1b':
             return
-    
+
     stdscr.addstr(3, 0, " " * 57)
     stdscr.addstr(3, 0, f'Task "{task}" successfully added. Press any button to exit', curses.color_pair(2))
     stdscr.refresh()
     stdscr.getch()
 
-    # Step 5: Find the .json file of the corresponding group
-    with open("groups.json", "r") as file:
-        groups = json.load(file)
-    f = ""
-    for i in groups:
-        if i["group_name"] == group:
-            f += i["group_file"]
-            break
-
-    # Step 6: Add the task on the corresponding group
-    with open(f"tasks/{f}.json", "r") as file:
-        try:
-            tasks = json.load(file)
-        except json.decoder.JSONDecodeError:
-            tasks = []
-
-    tasks.append({"task": task, "priority": priority.capitalize(), "completed": False})
-
-    with open(f"tasks/{f}.json", "w") as file:
-        json.dump(tasks, file, indent=4)
+    # Step 5: Add the task to the corresponding group
+    mytodo_funct.add_task(task, priority, mytodo_funct.find_group(group))
 
 def main(stdscr):
     """
@@ -198,7 +181,7 @@ def main(stdscr):
     """
     stdscr.clear()
     curses.curs_set(0)
-    
+
     # Get the "Daily" tasks, and split them into completed and uncompleted tasks
     group, group_name = get_tasks()
     completed, uncompleted = true_false(group)
@@ -213,7 +196,7 @@ def main(stdscr):
             else:
                 stdscr.addstr(n, 0, f"  {i['task']}", show_tasks(i))
                 stdscr.refresh()
-        if completed != []:    
+        if completed != []:
             stdscr.addstr(len(uncompleted) + 1, 0, "--------------------")
             stdscr.refresh()
 
@@ -223,13 +206,13 @@ def main(stdscr):
                     stdscr.refresh()
                 else:
                     stdscr.addstr(n+3+len(uncompleted), 0, f"  {i['task']}", show_tasks(i))
-                
-        key = stdscr.getch()        
+
+        key = stdscr.getch()
         if key == curses.KEY_UP and location > 0 :
             location -= 1
         elif key == curses.KEY_DOWN and location < len(group) - 1:
             location += 1
-        
+
         if key == (ord("a") & 0x1f):
             add_task_tui(stdscr, group_name)
             stdscr.clear()

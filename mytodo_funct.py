@@ -31,7 +31,7 @@ def mark_as_completed(task, group="daily"):
 
     Args:
         task (str): The task you want to mark as completed
-        group (str): This is the group where the task is located. It will be marked at completed to "daily" group, if not specified and if it exists 
+        group (str): This is the group where the task is located. It will be marked at completed to "daily" group, if not specified and if it exists
     """
 
     # Step 1: Read the .json file of the specified group.
@@ -133,7 +133,7 @@ def create_group(group_name):
 
     # Step 4: Create the .json file for the new group
     open(f"tasks/{group_file}.json", "w").close()
-    
+
 def delete_group(group_name):
     """
     Deletes an existing group, with all the tasks inside. The "Daily" group cannot be deleted, because is the default group
@@ -162,7 +162,25 @@ def delete_group(group_name):
     # Step 4: Write the list on the .json file
     with open("groups.json", "w") as file:
         json.dump(new_groups, file, indent=4)
-    
+
     # Step 5: Deletes the .json file of the deleted group
     os.remove(f"tasks/{path}.json")
 
+def find_group(group_name):
+    """
+    Returns the group file, when you give the group name
+
+    Args:
+        group_name (str): The name of the group
+
+    Returns:
+        grouo_file (str): The name of the group's .json file
+    """
+    # Step 1: Read the groups.json file
+    with open("groups.json", "r") as file:
+       groups = json.load(file)
+
+    # Step 2: Find the group file, and return it
+    for u in groups:
+        if u["group_name"] == group_name:
+            return u["group_file"]

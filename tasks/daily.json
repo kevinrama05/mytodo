@@ -18,5 +18,15 @@
         "task": "Do 10 push-ups",
         "priority": "High",
         "completed": false
+    },
+    {
+        "task": "Wake uo",
+        "priority": "High",
+        "completed": false
+    },
+    {
+        "task": "Get a girlfriend",
+        "priority": "Low",
+        "completed": false
     }
 ]
