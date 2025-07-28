@@ -2,31 +2,36 @@
     {
         "task": "Read the Bible",
         "priority": "Urgent",
-        "completed": false
+        "completed": true
     },
     {
         "task": "Go to work",
         "priority": "High",
-        "completed": false
+        "completed": true
     },
     {
         "task": "Go to sleep",
         "priority": "Low",
-        "completed": false
+        "completed": true
     },
     {
         "task": "Do 10 push-ups",
         "priority": "High",
-        "completed": false
+        "completed": true
     },
     {
         "task": "Wake uo",
         "priority": "High",
-        "completed": false
+        "completed": true
     },
     {
         "task": "Get a girlfriend",
         "priority": "Low",
-        "completed": false
+        "completed": true
+    },
+    {
+        "task": "Make the code",
+        "priority": "Urgent",
+        "completed": true
     }
 ]
