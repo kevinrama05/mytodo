@@ -1,3 +1,4 @@
+import signal
 import curses
 import json
 import mytodo_funct
@@ -175,6 +176,8 @@ def add_task_tui(stdscr, group="Daily"):
     # Step 5: Add the task to the corresponding group
     mytodo_funct.add_task(task, priority, mytodo_funct.find_group(group))
 
+
+
 def main(stdscr):
     """
     This is the main code for the TUI
@@ -185,10 +188,10 @@ def main(stdscr):
     # Get the "Daily" tasks, and split them into completed and uncompleted tasks
     group, group_name = get_tasks()
     completed, uncompleted = true_false(group)
-
     location = 0
     while True:
-        # Print the tasks using a for loop
+        if uncompleted == []:
+            stdscr.addstr(0, 0, "  Hurray! You have completed all the tasks")
         for n, i in enumerate(uncompleted):
             if location == n:
                 stdscr.addstr(n, 0, f"> {i['task']}", show_tasks(i, True))
@@ -197,17 +200,42 @@ def main(stdscr):
                 stdscr.addstr(n, 0, f"  {i['task']}", show_tasks(i))
                 stdscr.refresh()
         if completed != []:
-            stdscr.addstr(len(uncompleted) + 1, 0, "--------------------")
+            stdscr.addstr(len(uncompleted) + 1 if len(uncompleted) != 0 else 2, 0, "--------------------")
             stdscr.refresh()
 
             for n, i in enumerate(completed):
                 if location == n + len(uncompleted):
-                    stdscr.addstr(n+3+len(uncompleted), 0, f"> {i['task']}", show_tasks(i, True))
+                    stdscr.addstr(n+3+len(uncompleted) if len(uncompleted) != 0 else n+4, 0, f"> {i['task']}", show_tasks(i, True))
                     stdscr.refresh()
                 else:
-                    stdscr.addstr(n+3+len(uncompleted), 0, f"  {i['task']}", show_tasks(i))
-
+                    stdscr.addstr(n+3+len(uncompleted) if len(uncompleted) != 0 else n+4, 0, f"  {i['task']}", show_tasks(i))
+        
         key = stdscr.getch()
+       
+        if key == 11:
+            if location <= len(uncompleted) - 1:
+                mytodo_funct.mark_as_completed(uncompleted[location]["task"], mytodo_funct.find_group(group_name))
+                group, group_name = get_tasks()
+                completed, uncompleted = true_false(group)
+                stdscr.erase()
+                stdscr.refresh()
+                #uncompleted[location]["completed"] = True
+                #completed.append(uncompleted[location])
+                #del uncompleted[location]
+                #stdscr.erase()
+                #stdscr.refresh()
+            if location > len(uncompleted) and len(uncompleted) == 0:
+                mytodo_funct.unmark_as_completed(completed[location]["task"], mytodo_funct.find_group(group_name))
+                group, group_name = get_tasks()
+                completed, uncompleted = true_false(group)
+                stdscr.erase()
+                stdscr.refresh()
+            if location > len(uncompleted) - 1 and location <= len(uncompleted) + len(completed) - 1:
+                mytodo_funct.unmark_as_completed(completed[location-len(uncompleted)]["task"], mytodo_funct.find_group(group_name))
+                group, group_name = get_tasks()
+                completed, uncompleted = true_false(group)
+                stdscr.erase()
+                stdscr.refresh()
         if key == curses.KEY_UP and location > 0 :
             location -= 1
         elif key == curses.KEY_DOWN and location < len(group) - 1:

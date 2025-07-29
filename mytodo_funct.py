@@ -47,6 +47,28 @@ def mark_as_completed(task, group="daily"):
     with open(f"tasks/{group}.json", "w") as file:
         json.dump(tasks, file, indent=4)
 
+def unmark_as_completed(task, group="daily"):
+    """
+    Marks a completed task as uncompleted on a specific group, or to "daily" group, if ot specified
+
+    Args:
+        task (str): The task you want to unmark
+         group (str): This is the group where the task is located. It will be marked at completed to "daily" group, if not specified and if it exists
+    """
+
+    # Step 1: Read the .json file of the specified group
+    with open(f"tasks/{group}.json", "r") as file:
+        tasks = json.load(file)
+
+    # Step 2: Change the "completed" value to False
+    for i in tasks:
+        if i["task"] == task:
+            i["completed"] = False
+
+    # Step 3: Write the variable on the .json file
+    with open(f"tasks/{group}.json", "w") as file:
+        json.dump(tasks, file, indent=4)
+
 def delete_task(task, group="daily"):
     """
     Deletes a task on a specific group, or to "daily" group, if not specified
@@ -184,3 +206,5 @@ def find_group(group_name):
     for u in groups:
         if u["group_name"] == group_name:
             return u["group_file"]
+
+unmark_as_completed("Go to work")

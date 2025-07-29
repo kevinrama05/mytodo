@@ -7,31 +7,71 @@
     {
         "task": "Go to work",
         "priority": "High",
-        "completed": false
+        "completed": true
     },
     {
         "task": "Go to sleep",
         "priority": "Low",
-        "completed": false
+        "completed": true
     },
     {
         "task": "Do 10 push-ups",
         "priority": "High",
-        "completed": false
+        "completed": true
     },
     {
         "task": "Wake uo",
         "priority": "High",
-        "completed": false
+        "completed": true
     },
     {
         "task": "Get a girlfriend",
         "priority": "Low",
-        "completed": false
+        "completed": true
     },
     {
         "task": "Hello",
         "priority": "High",
-        "completed": false
+        "completed": true
+    },
+    {
+        "task": "Make the code",
+        "priority": "Urgent",
+        "completed": true
+    },
+    {
+        "task": "This is a test",
+        "priority": "Low",
+        "completed": true
+    },
+    {
+        "task": "Make this work today",
+        "priority": "High",
+        "completed": true
+    },
+    {
+        "task": "Finish this today",
+        "priority": "High",
+        "completed": true
+    },
+    {
+        "task": "Do the dishes",
+        "priority": "Urgent",
+        "completed": true
+    },
+    {
+        "task": "Hello",
+        "priority": "Low",
+        "completed": true
+    },
+    {
+        "task": "Hello",
+        "priority": "Low",
+        "completed": true
+    },
+    {
+        "task": "Try again",
+        "priority": "Urgent",
+        "completed": true
     }
 ]
