@@ -42,6 +42,7 @@ def mark_as_completed(task, group="daily"):
     for i in tasks:
         if i["task"] == task:
             i["completed"] = True
+            break
 
     # Step 3: Write the variable on the .json file
     with open(f"tasks/{group}.json", "w") as file:
@@ -64,7 +65,7 @@ def unmark_as_completed(task, group="daily"):
     for i in tasks:
         if i["task"] == task:
             i["completed"] = False
-
+            break
     # Step 3: Write the variable on the .json file
     with open(f"tasks/{group}.json", "w") as file:
         json.dump(tasks, file, indent=4)
@@ -207,4 +208,3 @@ def find_group(group_name):
         if u["group_name"] == group_name:
             return u["group_file"]
 
-unmark_as_completed("Go to work")

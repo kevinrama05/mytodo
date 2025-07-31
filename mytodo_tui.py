@@ -110,11 +110,10 @@ def true_false(tasks):
             completed.append(i)
         else:
             uncompleted.append(i)
-
     # Step 3: Return the lists
     return completed, uncompleted
 
-def add_task_tui(stdscr, group="Daily"):
+def add_task_tui(stdscr, group_name="Daily"):
     """
     Makes a TUI for adding a task to a specific group
 
@@ -133,7 +132,10 @@ def add_task_tui(stdscr, group="Daily"):
     curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
 
-    # Step 3: Handle the input for the task
+    # Step 3: Handle the input for the task, and do not add a task if it already exists
+    with open(f"tasks/{mytodo_funct.find_group(group_name)}.json", "r") as f:
+        tasks = json.load(f)
+
     allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ") | set(r"""~`!@#$%^&*()-_=+[{]}\|;:'",<.>/?""")
     task = ""
     while True:
@@ -145,7 +147,18 @@ def add_task_tui(stdscr, group="Daily"):
             task = task[:-1]
             stdscr.addstr(0, 6+len(task), " ")
         if key == "\n":
-            break
+            x = False
+            for i in tasks:
+                if i["task"] == task:
+                    x = True
+            if x == True:
+                stdscr.addstr(3, 0, " " * 60)
+                stdscr.addstr(0, 6, " " * len(task))
+                task = ""
+                stdscr.addstr(3, 0, "You already have this task (completed or uncompleted)", curses.color_pair(1))
+            else:
+                stdscr.addstr(3, 0, " " * 60)
+                break
         if key == '\x1b':
             return
     # Step 4: Handle the input for the priority
@@ -174,7 +187,55 @@ def add_task_tui(stdscr, group="Daily"):
     stdscr.getch()
 
     # Step 5: Add the task to the corresponding group
-    mytodo_funct.add_task(task, priority, mytodo_funct.find_group(group))
+    mytodo_funct.add_task(task, priority.capitalize(), mytodo_funct.find_group(group_name))
+
+def mark_or_unmark_command(completed, uncompleted, group_name, location):
+    """
+    Marks an uncompleted tasks as completed, or vice versa, based on the location of the highlighted task
+
+    Args:
+        completed, uncompleted (list of dicts): These lists represent the tasks printed on the screen
+        group_name (str): The group that the tasks are part of
+        location (int): It shows the location of the selected task
+    """
+    # Step 1: See if the uncompleted list is empty or not. If empyt, assign an "empty" value with True, else, assign it with False
+    if uncompleted == []:
+        empty = True
+    else:
+        empty = False
+
+    # Step 2: See if the task is uncompleted or not. Based on that, make the right assignment
+    if empty == True:
+        mytodo_funct.unmark_as_completed(completed[location]["task"], mytodo_funct.find_group(group_name))
+    else:
+        if location in [i for i in range(len(uncompleted))]:
+            mytodo_funct.mark_as_completed(uncompleted[location]["task"], mytodo_funct.find_group(group_name))
+        else:
+            mytodo_funct.unmark_as_completed(completed[location-len(uncompleted)]["task"], mytodo_funct.find_group(group_name))
+
+def delete_task_command(completed, uncompleted, group_name, location):
+    """
+    Deletes the task on the selected location
+    
+    Args:
+        completed, uncompleted (list of dicts): These are all the completed and uncompleted tasks
+        group_name (str): This is the group name
+        location (int): This is the location of the selected task
+    """
+    # Step 1: See if the uncompleted list is empty or not. If empyt, assign an "empty" value with True, else, assign it with False
+    if uncompleted == []:
+        empty = True
+    else:
+        empty = False
+
+    # Step 2: See if the task is uncompleted or not. Based on that, make the right assignment
+    if empty == True:
+        mytodo_funct.delete_task(completed[location]["task"], mytodo_funct.find_group(group_name))
+    else:
+        if location in [i for i in range(len(uncompleted))]:
+            mytodo_funct.delete_task(uncompleted[location]["task"], mytodo_funct.find_group(group_name))
+        else:
+            mytodo_funct.delete_task(completed[location-len(uncompleted)]["task"], mytodo_funct.find_group(group_name))
 
 
 
@@ -189,16 +250,18 @@ def main(stdscr):
     group, group_name = get_tasks()
     completed, uncompleted = true_false(group)
     location = 0
+    
     while True:
         if uncompleted == []:
             stdscr.addstr(0, 0, "  Hurray! You have completed all the tasks")
-        for n, i in enumerate(uncompleted):
-            if location == n:
-                stdscr.addstr(n, 0, f"> {i['task']}", show_tasks(i, True))
-                stdscr.refresh()
-            else:
-                stdscr.addstr(n, 0, f"  {i['task']}", show_tasks(i))
-                stdscr.refresh()
+        else:
+            for n, i in enumerate(uncompleted):
+                if location == n:
+                    stdscr.addstr(n, 0, f"> {i['task']}", show_tasks(i, True))
+                    stdscr.refresh()
+                else:
+                    stdscr.addstr(n, 0, f"  {i['task']}", show_tasks(i))
+                    stdscr.refresh()
         if completed != []:
             stdscr.addstr(len(uncompleted) + 1 if len(uncompleted) != 0 else 2, 0, "--------------------")
             stdscr.refresh()
@@ -210,32 +273,15 @@ def main(stdscr):
                 else:
                     stdscr.addstr(n+3+len(uncompleted) if len(uncompleted) != 0 else n+4, 0, f"  {i['task']}", show_tasks(i))
         
-        key = stdscr.getch()
+        key = stdscr.getch() 
        
         if key == 11:
-            if location <= len(uncompleted) - 1:
-                mytodo_funct.mark_as_completed(uncompleted[location]["task"], mytodo_funct.find_group(group_name))
-                group, group_name = get_tasks()
-                completed, uncompleted = true_false(group)
-                stdscr.erase()
-                stdscr.refresh()
-                #uncompleted[location]["completed"] = True
-                #completed.append(uncompleted[location])
-                #del uncompleted[location]
-                #stdscr.erase()
-                #stdscr.refresh()
-            if location > len(uncompleted) and len(uncompleted) == 0:
-                mytodo_funct.unmark_as_completed(completed[location]["task"], mytodo_funct.find_group(group_name))
-                group, group_name = get_tasks()
-                completed, uncompleted = true_false(group)
-                stdscr.erase()
-                stdscr.refresh()
-            if location > len(uncompleted) - 1 and location <= len(uncompleted) + len(completed) - 1:
-                mytodo_funct.unmark_as_completed(completed[location-len(uncompleted)]["task"], mytodo_funct.find_group(group_name))
-                group, group_name = get_tasks()
-                completed, uncompleted = true_false(group)
-                stdscr.erase()
-                stdscr.refresh()
+            mark_or_unmark_command(completed, uncompleted, group_name, location)
+            group, group_name = get_tasks()
+            completed, uncompleted = true_false(group)
+            stdscr.erase()
+            stdscr.refresh()
+            
         if key == curses.KEY_UP and location > 0 :
             location -= 1
         elif key == curses.KEY_DOWN and location < len(group) - 1:
@@ -243,13 +289,20 @@ def main(stdscr):
 
         if key == (ord("a") & 0x1f):
             add_task_tui(stdscr, group_name)
-            stdscr.clear()
+            stdscr.erase()
+            stdscr.refresh()
             group, group_name = get_tasks()
             completed, uncompleted = true_false(group)
             curses.curs_set(0)
+        
+        if key == 24:
+            delete_task_command(completed, uncompleted, group_name, location)
+            group, group_name = get_tasks()
+            completed, uncompleted = true_false(group)
+            stdscr.erase()
+            stdscr.refresh()
 
         if key == 27:
             return
-
 
 curses.wrapper(main)

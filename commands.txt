@@ -1,0 +1,4 @@
+Marking or unmarking tasks ----- Ctrl + K
+Adding a new task -------------- Ctrl + A
+Deleting a task ---------------- Ctrl + X
+Deleting all completed tasks --- Ctrl + Z 
